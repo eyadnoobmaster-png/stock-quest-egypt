@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stock Quest — Learn Investing</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#182238;--muted:#68758c;--line:#e3e9f2;--blue:#3559e0;--blue2:#edf1ff;--green:#12805c;--red:#c04452;--gold:#f2b84b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{background:linear-gradient(120deg,#1b2b57,#3559e0);color:#fff;padding:25px max(18px,calc((100vw - 1100px)/2))}
+header .top{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}
+.brand{font-size:1.4rem;font-weight:850;letter-spacing:.2px}.tag{opacity:.85;font-size:.92rem}.pill{border:1px solid #ffffff55;border-radius:99px;padding:7px 12px;font-size:.88rem}
+main{max-width:1100px;margin:22px auto;padding:0 16px 48px}.welcome{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;margin:12px 0 20px}.welcome h1{font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.1;margin:0 0 8px}.welcome p{margin:0;color:var(--muted);max-width:650px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:19px;box-shadow:0 5px 18px #24345c08}.span8{grid-column:span 8}.span4{grid-column:span 4}.span6{grid-column:span 6}.span12{grid-column:span 12}
+@media(max-width:760px){.span8,.span4,.span6{grid-column:span 12}.card{padding:16px}}
+.eyebrow{text-transform:uppercase;letter-spacing:.09em;font-weight:800;font-size:.72rem;color:var(--muted)}h2{font-size:1.18rem;margin:3px 0 12px}h3{font-size:1rem;margin:0 0 7px}.balance{font-size:2rem;font-weight:850;letter-spacing:-.04em}.muted{color:var(--muted)}.small{font-size:.88rem}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}.metric{background:#f7f9fd;border-radius:12px;padding:11px}.metric strong{display:block;font-size:1.08rem}.positive{color:var(--green)}.negative{color:var(--red)}
+button,select,input{font:inherit}button{cursor:pointer;border:0;border-radius:11px;padding:10px 14px;font-weight:750;background:var(--blue);color:#fff}button.secondary{background:var(--blue2);color:var(--blue)}button.ghost{background:#f2f5fa;color:var(--ink)}button:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.progress{height:9px;background:#e9eef7;border-radius:99px;overflow:hidden;margin:10px 0}.progress>div{height:100%;background:linear-gradient(90deg,#3559e0,#7a91ff);width:0%;transition:width .25s}
+.lesson{border:1px solid var(--line);border-radius:13px;padding:13px;margin:9px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}.lesson.done{background:#f0fbf6;border-color:#b8e8d5}.lesson p{margin:3px 0 0;color:var(--muted);font-size:.88rem}
+table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{text-align:left;padding:11px 7px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:.77rem;text-transform:uppercase;letter-spacing:.05em}.right{text-align:right}
+select,input{padding:10px;border:1px solid #cfd8e8;border-radius:10px;background:white;color:var(--ink);max-width:100%}.tradeform{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;align-items:end;margin-top:12px}.tradeform label{font-size:.8rem;color:var(--muted);display:grid;gap:5px}@media(max-width:600px){.tradeform{grid-template-columns:1fr 1fr}.tradeform button{grid-column:span 2}}
+.notice{background:#fff8e8;border:1px solid #f3dfad;padding:12px 14px;border-radius:12px;color:#6c4b0b;font-size:.9rem}.lessonbox{background:#f6f8ff;border-radius:13px;padding:15px;margin:10px 0}.lessonbox p{margin:7px 0}.quiz-options{display:grid;gap:8px;margin:12px 0}.quiz-options button{text-align:left;background:#fff;color:var(--ink);border:1px solid var(--line)}.quiz-options button:hover{border-color:var(--blue)}.quiz-options button.correct{border-color:#76c7a5;background:#effbf5}.quiz-options button.wrong{border-color:#e6a3aa;background:#fff2f3}.feedback{font-size:.9rem;min-height:24px}.footer{text-align:center;color:var(--muted);font-size:.82rem;margin:22px 0}
+
+.account-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:12px 0}
+.provider{background:#fff;color:var(--ink);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:8px;min-height:45px}
+.provider .logo{font-weight:900;font-size:1.05rem}
+.account-status{background:#f5f8ff;border:1px solid #dbe4ff;border-radius:12px;padding:12px;margin-top:10px;font-size:.9rem}
+@media(max-width:600px){.account-grid{grid-template-columns:repeat(2,1fr)}}
+
+</style>
+</head>
+<body>
+<header><div class="top"><div><div class="brand">🚀 Stock Quest</div><div class="tag">Learn the market. Practise safely. Level up.</div></div><div class="pill">🎮 Practice mode · No real trades</div></div></header>
+<main>
+<section class="welcome"><div><h1>Your investing adventure</h1><p>Learn about stocks and funds one mission at a time. Every trade uses pretend money, so mistakes are part of learning.</p></div><button class="secondary" id="resetBtn">↻ Reset game</button></section>
+<div class="notice">⚠️ <strong>Learning simulator only.</strong> Prices and companies below are fictional examples, not live market data or recommendations. This game cannot make or guarantee real money.</div>
+
+<section class="card span12" style="margin-top:16px">
+ <div class="eyebrow">Account & progress</div>
+ <h2>Save your Stock Quest progress</h2>
+ <p class="muted small">Sign in with Google to identify your account. Progress is still saved on this browser for now; cloud progress sync will be a separate step.</p>
+ <div class="account-grid">
+  <button class="provider" data-provider="Google"><span class="logo">G</span> Google</button>
+  <button class="provider" data-provider="Yahoo"><span class="logo">Y!</span> Yahoo</button>
+  <button class="provider" data-provider="Apple"><span class="logo">●</span> Apple</button>
+  <button class="provider" data-provider="Facebook"><span class="logo">f</span> Facebook</button>
+ </div>
+ <div class="actions">
+  <button class="secondary" id="saveProgressBtn">Save progress now</button>
+  <button class="ghost" id="loadProgressBtn">Load saved progress</button>
+  <button class="ghost" id="signOutBtn" hidden>Sign out</button>
+ </div>
+ <div class="account-status" id="accountStatus" aria-live="polite">Not signed in. Auto-save is enabled on this device after you make progress.</div>
+ <p class="muted small" style="margin-bottom:0">Google sign-in is wired into this version but will work only after you paste your Firebase web-app config below and run the site from localhost or a hosted website. Yahoo, Apple, and Facebook are not connected yet. Never enter your provider password into this website.</p>
+</section>
+
+<div class="grid" style="margin-top:16px">
+<section class="card span8">
+<div class="eyebrow">Your virtual wallet</div><div class="balance" id="cash">EGP 10,000.00</div><div class="muted small">Available pretend cash</div>
+<div class="metrics"><div class="metric"><span class="muted small">Portfolio value</span><strong id="portfolio">EGP 0.00</strong></div><div class="metric"><span class="muted small">Total value</span><strong id="total">EGP 10,000.00</strong></div><div class="metric"><span class="muted small">Practice return</span><strong id="return">0.00%</strong></div></div>
+<div style="margin-top:17px"><div style="display:flex;justify-content:space-between;gap:8px"><strong>Level <span id="level">1</span> · Market Explorer</strong><span class="muted small" id="xp">0 / 100 XP</span></div><div class="progress"><div id="xpbar"></div></div><div class="muted small" id="nextLevel">Complete missions to earn XP and unlock levels.</div></div>
+</section>
+<section class="card span4"><div class="eyebrow">Today's mission</div><h2 id="missionTitle">First steps</h2><p id="missionText" class="muted">Learn what a stock represents.</p><div class="actions"><button id="missionBtn">Start mission</button></div><p class="small muted" id="missionStatus">Reward: 25 XP</p></section>
+<section class="card span6">
+<div class="eyebrow">Market board</div><h2>Practice assets</h2><p class="muted small">Fictional sample prices · prices may change when you use the market buttons.</p>
+<table><thead><tr><th>Asset</th><th>Price</th><th class="right">Move</th></tr></thead><tbody id="marketRows"></tbody></table>
+<div class="actions" style="margin-top:12px"><button class="secondary" id="marketMove">🎲 Simulate market day</button></div>
+<div class="small muted" style="margin-top:8px">A simulated market move can be positive or negative. Diversification doesn't remove all risk.</div>
+</section>
+<section class="card span6">
+<div class="eyebrow">Practice trading</div><h2>Buy or sell pretend units</h2>
+<p class="muted small">Choose an asset and quantity. This only updates your game portfolio.</p>
+<div class="tradeform"><label>Asset<select id="assetSelect"></select></label><label>Quantity<input id="quantity" type="number" min="1" step="1" value="1"></label><label>Action<select id="tradeAction"><option value="buy">Buy</option><option value="sell">Sell</option></select></label><button id="tradeBtn">Confirm</button></div>
+<p class="feedback" id="tradeFeedback" aria-live="polite"></p>
+</section>
+<section class="card span8">
+<div class="eyebrow">Your collection</div><h2>Portfolio</h2>
+<div id="holdings"><p class="muted">You haven't bought any practice assets yet. Try a tiny pretend trade.</p></div>
+</section>
+<section class="card span4">
+<div class="eyebrow">Your achievements</div><h2>Badges</h2><div id="badges" class="muted small">Complete your first mission to earn a badge.</div>
+</section>
+<section class="card span6">
+<div class="eyebrow">Learn & unlock</div><h2>Mission map</h2>
+<div id="missions"></div>
+</section>
+<section class="card span6">
+<div class="eyebrow">Lesson of the day</div><h2 id="lessonTitle">What is a stock?</h2>
+<div class="lessonbox" id="lessonContent"></div>
+<div class="actions"><button id="quizBtn">Take 1-question challenge</button></div><p class="feedback" id="quizFeedback" aria-live="polite"></p>
+</section>
+<section class="card span12">
+<div class="eyebrow">Quick calculator</div><h2>What if the price changes?</h2><p class="muted small">Use this to see possible gains and losses. It is a calculation, not a prediction.</p>
+<div class="tradeform"><label>Amount invested (EGP)<input id="calcAmount" type="number" min="1" value="500"></label><label>Price change (%)<input id="calcChange" type="number" value="10" step="1"></label><label>Scenario<select id="calcScenario"><option value="gain">Price rises</option><option value="loss">Price falls</option></select></label><button id="calcBtn">Calculate</button></div><div class="lessonbox" id="calcResult">Try a 10% rise or fall to compare the outcomes.</div>
+</section>
+</div>
+<p class="footer">Stock Quest is an educational demo. It saves progress in this browser only. No account, payments, or real investing.</p>
+</main>
+<script>
+const initialAssets=[
+ {id:"NILE",name:"Nile Tech (fictional)",price:120,prev:120,kind:"Company share"},
+ {id:"SUN",name:"Sun Foods (fictional)",price:75,prev:75,kind:"Company share"},
+ {id:"EGF",name:"Egypt Growth Fund (fictional)",price:100,prev:100,kind:"Fund example"}
+];
+const lessonData=[
+ {title:"What is a stock?",content:"<p>A <strong>stock</strong> (or share) is a tiny ownership piece of a company. If the company does well, its share price might rise — but it can also fall.</p><p><strong>Example:</strong> if one pretend share costs EGP 100 and later costs EGP 110, it has risen by EGP 10 per share. That gain is not guaranteed until you sell, and the price could fall instead.</p>",question:"What does owning a stock usually mean?",options:["You own a small part of a company","The company owes you a guaranteed profit","You cannot lose money"],answer:0,why:"A share represents ownership; it does not promise profit or protect you from losses."},
+ {title:"What is a fund?",content:"<p>A <strong>fund</strong> collects money from many investors and uses it to hold a collection of investments. A fund can make it easier to spread money across different assets.</p><p><strong>Diversification</strong> means not relying on just one investment. It can reduce some risks, but it cannot remove all risk.</p>",question:"Why might someone choose a fund that holds many companies?",options:["To guarantee they make money","To spread their investment across different assets","Because funds never go down"],answer:1,why:"Holding different investments spreads exposure, but the whole fund can still lose value."},
+ {title:"Risk and reward",content:"<p><strong>Risk</strong> means an outcome is uncertain, including the possibility of losing money. Higher possible returns often come with higher risk.</p><p>Don't invest money you need soon, and don't assume a price that rose yesterday will rise tomorrow.</p>",question:"A stock rises 8% today. What is the safest conclusion?",options:["It will rise again tomorrow","It is guaranteed to be profitable","Tomorrow's price is uncertain"],answer:2,why:"Past movement does not reliably guarantee the next move."},
+ {title:"How investors may earn",content:"<p>Investors may earn through a higher selling price than their buying price, or through <strong>dividends</strong> — payments some companies make to shareholders. Dividends are not guaranteed.</p><p>Profit or loss is generally based on what you receive when selling minus what you paid, including any costs. This simulator ignores fees and taxes.</p>",question:"Which is one possible way a stock investor may earn money?",options:["A guaranteed monthly payment from every stock","Selling a share for more than they paid","A promise that prices never fall"],answer:1,why:"A higher selling price can create a gain, but prices can fall and gains are not guaranteed."}
+];
+let state={cash:10000,assets:structuredClone(initialAssets),holdings:{},xp:0,completed:[],trades:0,marketDays:0,quizDone:[]};
+const missions=[
+ {id:"learn-stock",title:"Mission 1: Meet a stock",desc:"Read the first lesson and learn what a share represents.",reward:25,check:s=>s.completed.includes("learn-stock")},
+ {id:"first-trade",title:"Mission 2: First practice trade",desc:"Buy at least one fictional asset.",reward:35,check:s=>s.trades>0},
+ {id:"market-day",title:"Mission 3: Watch prices move",desc:"Simulate one market day and notice prices can rise or fall.",reward:25,check:s=>s.marketDays>0},
+ {id:"learn-fund",title:"Mission 4: Discover funds",desc:"Complete the lesson about funds and diversification.",reward:35,check:s=>s.completed.includes("learn-fund")},
+ {id:"calculator",title:"Mission 5: Calculate a scenario",desc:"Use the calculator to compare a possible gain or loss.",reward:25,check:s=>s.completed.includes("calculator")}
+];
+
+let lessonIndex=0,quizAsked=false;
+const SAVE_KEY="stockQuestEgyptProgress_v1";
+function saveProgress(){
+ try{
+  const payload={cash:state.cash,assets:state.assets,holdings:state.holdings,xp:state.xp,completed:state.completed,trades:state.trades,marketDays:state.marketDays,quizDone:state.quizDone};
+  localStorage.setItem(SAVE_KEY,JSON.stringify(payload));
+  const status=document.getElementById("accountStatus");
+  if(status)status.textContent="Progress saved on this browser at "+new Date().toLocaleString()+". This is device-only saving, not cloud account sync.";
+  return true;
+ }catch(e){
+  const status=document.getElementById("accountStatus");
+  if(status)status.textContent="Could not save in this browser. Check your browser's storage settings.";
+  return false;
+ }
+}
+function loadProgress(showMessage=true){
+ try{
+  const raw=localStorage.getItem(SAVE_KEY);
+  if(!raw){if(showMessage)document.getElementById("accountStatus").textContent="No saved progress found on this browser yet.";return false}
+  const saved=JSON.parse(raw);
+  if(typeof saved.cash!=="number"||!Array.isArray(saved.assets)||typeof saved.xp!=="number")throw new Error("Invalid save");
+  state={cash:saved.cash,assets:saved.assets,holdings:saved.holdings||{},xp:saved.xp,completed:saved.completed||[],trades:saved.trades||0,marketDays:saved.marketDays||0,quizDone:saved.quizDone||[]};
+  render();
+  if(showMessage)document.getElementById("accountStatus").textContent="Saved progress loaded on this device. Cloud sign-in is not connected.";
+  return true;
+ }catch(e){
+  if(showMessage)document.getElementById("accountStatus").textContent="Could not load saved progress. The saved data may be damaged.";
+  return false;
+ }
+}
+let saveDebounce;
+function scheduleSave(){clearTimeout(saveDebounce);saveDebounce=setTimeout(()=>saveProgress(),250)}
+
+const fmt=n=>"EGP "+n.toLocaleString("en-EG",{minimumFractionDigits:2,maximumFractionDigits:2});
+function levelInfo(){return {level:Math.floor(state.xp/100)+1,into:state.xp%100}}
+function holdingValue(){return Object.entries(state.holdings).reduce((sum,[id,q])=>sum+q*state.assets.find(a=>a.id===id).price,0)}
+function costBasisApprox(){return state.startingCash??10000}
+function render(){
+ document.getElementById("cash").textContent=fmt(state.cash);
+ const pv=holdingValue(),total=state.cash+pv,ret=(total-10000)/10000*100;
+ document.getElementById("portfolio").textContent=fmt(pv);document.getElementById("total").textContent=fmt(total);
+ let r=document.getElementById("return");r.textContent=(ret>=0?"+":"")+ret.toFixed(2)+"%";r.className=ret>=0?"positive":"negative";
+ const li=levelInfo();document.getElementById("level").textContent=li.level;document.getElementById("xp").textContent=li.into+" / 100 XP";document.getElementById("xpbar").style.width=li.into+"%";document.getElementById("nextLevel").textContent=(100-li.into)+" XP until next level.";
+ document.getElementById("marketRows").innerHTML=state.assets.map(a=>{let d=a.price-a.prev,p=d/a.prev*100;return `<tr><td><strong>${a.id}</strong><br><span class="muted small">${a.name}</span></td><td>${fmt(a.price)}</td><td class="right ${d>=0?"positive":"negative"}">${d>=0?"+":""}${p.toFixed(2)}%</td></tr>`}).join("");
+ document.getElementById("assetSelect").innerHTML=state.assets.map(a=>`<option value="${a.id}">${a.id} — ${a.name} (${fmt(a.price)})</option>`).join("");
+ const held=Object.entries(state.holdings).filter(([id,q])=>q>0);
+ document.getElementById("holdings").innerHTML=held.length?`<table><thead><tr><th>Asset</th><th>Units</th><th>Current value</th></tr></thead><tbody>${held.map(([id,q])=>{let a=state.assets.find(x=>x.id===id);return `<tr><td>${a.name}<br><span class="muted small">${id}</span></td><td>${q}</td><td>${fmt(q*a.price)}</td></tr>`}).join("")}</tbody></table>`:'<p class="muted">You haven’t bought any practice assets yet. Try a tiny pretend trade.</p>';
+ document.getElementById("missions").innerHTML=missions.map(m=>{let done=m.check(state);return `<div class="lesson ${done?"done":""}"><div><strong>${m.title} ${done?"✓":""}</strong><p>${m.desc}</p></div><span class="small">${done?"Done":"+"+m.reward+" XP"}</span></div>`}).join("");
+ const b=[];if(state.completed.length)b.push("🏅 Curious Learner");if(state.trades)b.push("🛒 First Trade");if(state.marketDays)b.push("📈 Market Watcher");if(state.completed.includes("learn-fund"))b.push("🌱 Diversifier");document.getElementById("badges").textContent=b.join(" · ")||"Complete a mission to earn your first badge.";
+ const next=missions.find(m=>!m.check(state));document.getElementById("missionTitle").textContent=next?next.title:"All starter missions complete!";document.getElementById("missionText").textContent=next?next.desc:"Great work — revisit lessons and keep practising.";document.getElementById("missionStatus").textContent=next?"Reward: "+next.reward+" XP":"You earned the starter badges.";document.getElementById("missionBtn").textContent=next?"Start mission":"Review lessons";document.getElementById("missionBtn").dataset.mission=next?next.id:"review";
+ scheduleSave();
+}
+function award(id,reward){if(state.completed.includes(id))return false;state.completed.push(id);state.xp+=reward;render();return true}
+function showLesson(index){lessonIndex=index;const l=lessonData[index];document.getElementById("lessonTitle").textContent=l.title;document.getElementById("lessonContent").innerHTML=l.content;document.getElementById("quizFeedback").textContent="";quizAsked=false;document.getElementById("quizBtn").textContent="Take 1-question challenge"}
+document.getElementById("missionBtn").addEventListener("click",()=>{let id=document.getElementById("missionBtn").dataset.mission;if(id==="review"){showLesson(0);return}if(id==="learn-stock"){showLesson(0);award("learn-stock",25);document.getElementById("missionText").textContent="Lesson opened — read it, then try the challenge."}else if(id==="learn-fund"){showLesson(1);if(award("learn-fund",35))document.getElementById("missionText").textContent="Fund lesson opened. Keep going!"}else if(id==="first-trade"){document.getElementById("assetSelect").focus();document.getElementById("tradeFeedback").textContent="Choose an asset and buy 1 pretend unit to complete this mission."}else if(id==="market-day"){document.getElementById("marketMove").focus();document.getElementById("tradeFeedback").textContent="Press “Simulate market day” to complete this mission."}else if(id==="calculator"){document.getElementById("calcAmount").focus();document.getElementById("calcResult").textContent="Enter an amount and price change, then press Calculate."}});
+document.getElementById("tradeBtn").addEventListener("click",()=>{const id=document.getElementById("assetSelect").value,q=Number(document.getElementById("quantity").value),action=document.getElementById("tradeAction").value,a=state.assets.find(x=>x.id===id);const fb=document.getElementById("tradeFeedback");if(!Number.isInteger(q)||q<1){fb.textContent="Enter a whole-number quantity of at least 1.";return}const cost=a.price*q;state.holdings[id]??=0;if(action==="buy"){if(cost>state.cash){fb.textContent="Not enough pretend cash for that trade. Try fewer units.";return}state.cash-=cost;state.holdings[id]+=q;state.trades++;fb.textContent=`Practice purchase complete: ${q} unit(s) of ${id} for ${fmt(cost)}.`;if(!state.completed.includes("first-trade")){state.completed.push("first-trade");state.xp+=35}}else{if(state.holdings[id]<q){fb.textContent="You don't own that many practice units to sell.";return}state.holdings[id]-=q;state.cash+=cost;state.trades++;fb.textContent=`Practice sale complete: ${q} unit(s) of ${id} for ${fmt(cost)}. Your result depends on the price you paid.`}render()});
+document.getElementById("marketMove").addEventListener("click",()=>{state.assets.forEach(a=>{a.prev=a.price;const move=(Math.random()*0.16)-0.08;a.price=Math.max(1,Math.round(a.price*(1+move)*100)/100)});state.marketDays++;if(!state.completed.includes("market-day")){state.completed.push("market-day");state.xp+=25}render()});
+document.getElementById("quizBtn").addEventListener("click",()=>{const l=lessonData[lessonIndex],fb=document.getElementById("quizFeedback"),btn=document.getElementById("quizBtn");if(quizAsked){lessonIndex=(lessonIndex+1)%lessonData.length;showLesson(lessonIndex);return}quizAsked=true;document.getElementById("lessonContent").innerHTML=`<p><strong>${l.question}</strong></p><div class="quiz-options">${l.options.map((o,i)=>`<button data-opt="${i}">${o}</button>`).join("")}</div>`;document.querySelectorAll("[data-opt]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-opt]").forEach(x=>x.disabled=true);const ok=Number(b.dataset.opt)===l.answer;b.classList.add(ok?"correct":"wrong");fb.textContent=(ok?"Nice work! ":"Not quite. ")+l.why;if(ok&&!state.quizDone.includes(lessonIndex)){state.quizDone.push(lessonIndex);state.xp+=15;if(lessonIndex===1&&!state.completed.includes("learn-fund")){state.completed.push("learn-fund");state.xp+=35}}if(lessonIndex===0&&!state.completed.includes("learn-stock")){state.completed.push("learn-stock");state.xp+=25}render();btn.textContent="Next lesson →"}))});
+document.getElementById("calcBtn").addEventListener("click",()=>{let amount=Number(document.getElementById("calcAmount").value),change=Math.abs(Number(document.getElementById("calcChange").value)),sign=document.getElementById("calcScenario").value==="gain"?1:-1;if(!Number.isFinite(amount)||amount<=0||!Number.isFinite(change)||change>100000){document.getElementById("calcResult").textContent="Enter a positive amount and a reasonable percentage.";return}const delta=amount*change/100*sign;document.getElementById("calcResult").innerHTML=`<strong>Starting amount:</strong> ${fmt(amount)}<br><strong>Hypothetical change:</strong> <span class="${sign>0?"positive":"negative"}">${sign>0?"+":"−"}${fmt(Math.abs(delta))}</span><br><strong>New value:</strong> ${fmt(amount+delta)}<p class="small muted">This is a made-up scenario, not a prediction. Real investments can move differently and may include fees.</p>`;if(!state.completed.includes("calculator")){state.completed.push("calculator");state.xp+=25}render()});
+document.getElementById("resetBtn").addEventListener("click",()=>{if(confirm("Reset all Stock Quest progress and virtual trades?")){state={cash:10000,assets:structuredClone(initialAssets),holdings:{},xp:0,completed:[],trades:0,marketDays:0,quizDone:[]};showLesson(0);render();document.getElementById("tradeFeedback").textContent="";document.getElementById("calcResult").textContent="Try a 10% rise or fall to compare the outcomes."}});
+
+document.getElementById("saveProgressBtn").addEventListener("click",()=>saveProgress());
+document.getElementById("loadProgressBtn").addEventListener("click",()=>loadProgress(true));
+document.querySelectorAll("[data-provider]").forEach(btn=>btn.addEventListener("click",()=>{
+ const provider=btn.dataset.provider;
+ if(provider==="Google"){
+  if(typeof window.stockQuestGoogleSignIn==="function") window.stockQuestGoogleSignIn();
+  else document.getElementById("accountStatus").textContent="Firebase is still loading. Wait a moment and try again.";
+ } else {
+  document.getElementById("accountStatus").textContent=provider+" sign-in is not connected yet. Google is the first provider being set up.";
+ }
+}));
+showLesson(0);
+if(!loadProgress(false))render();
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+// 1) Replace the sample values below with the exact config from Firebase Console > Project settings > Your apps > Config.
+const firebaseConfig = {
+  apiKey: "AIzaSyDiAsXwsHzDNyz94u9oZ3aEPY7csbzUm7k",
+  authDomain: "stock-quest-egypt.firebaseapp.com",
+  projectId: "stock-quest-egypt",
+  appId: "1:989488849508:web:9c2582a78d2b79d30eb571"
+};
+
+const status = document.getElementById("accountStatus");
+const signOutBtn = document.getElementById("signOutBtn");
+const configReady = Object.values(firebaseConfig).every(v => v && !v.startsWith("PASTE_"));
+if (!configReady) {
+  status.textContent = "Next setup step: paste your Firebase web-app config into this file. Google sign-in is not active until you do.";
+} else {
+  try {
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    window.stockQuestGoogleSignIn = async () => {
+      status.textContent = "Opening Google sign-in…";
+      try {
+        const result = await signInWithPopup(auth, provider);
+        status.textContent = "Signed in as " + (result.user.displayName || result.user.email || "Google user") + ". Your game progress is still saved on this browser; cloud sync is the next step.";
+      } catch (error) {
+        console.error("Firebase Google sign-in error:", error.code, error.message);
+        status.textContent = "Sign-in didn't work: " + (error.code || "unknown error") + ". Check that Google is enabled, the domain is authorized, and the site is running on localhost or HTTPS.";
+      }
+    };
+    signOutBtn.hidden = false;
+    signOutBtn.addEventListener("click", async () => {
+      try { await signOut(auth); status.textContent = "Signed out. Your browser-saved practice progress remains on this device."; }
+      catch (error) { status.textContent = "Could not sign out. Please try again."; }
+    });
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        status.textContent = "Signed in as " + (user.displayName || user.email || "Google user") + ". Your game progress is still saved on this browser; cloud sync is the next step.";
+      } else if (!status.textContent.startsWith("Sign-in didn't work")) {
+        status.textContent = "Not signed in. Click Google to sign in. Browser-only saving is enabled; cloud progress sync is the next step.";
+      }
+    });
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+    status.textContent = "Firebase could not initialize. Double-check that you copied the web-app config correctly.";
+  }
+}
+</script>
+</body>
+</html>
