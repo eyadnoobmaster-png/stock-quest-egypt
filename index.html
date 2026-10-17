@@ -41,7 +41,7 @@ select,input{padding:10px;border:1px solid #cfd8e8;border-radius:10px;background
 <section class="card span12" style="margin-top:16px">
  <div class="eyebrow">Account & progress</div>
  <h2>Save your Stock Quest progress</h2>
- <p class="muted small">Sign in with Google to identify your account. Progress is still saved on this browser for now; cloud progress sync will be a separate step.</p>
+ <p class="muted small">Sign in with Google to save your pretend wallet, holdings, missions, and XP to your account so you can continue on another device.</p>
  <div class="account-grid">
   <button class="provider" data-provider="Google"><span class="logo">G</span> Google</button>
   <button class="provider" data-provider="Yahoo"><span class="logo">Y!</span> Yahoo</button>
@@ -53,8 +53,8 @@ select,input{padding:10px;border:1px solid #cfd8e8;border-radius:10px;background
   <button class="ghost" id="loadProgressBtn">Load saved progress</button>
   <button class="ghost" id="signOutBtn" hidden>Sign out</button>
  </div>
- <div class="account-status" id="accountStatus" aria-live="polite">Not signed in. Auto-save is enabled on this device after you make progress.</div>
- <p class="muted small" style="margin-bottom:0">Google sign-in is wired into this version but will work only after you paste your Firebase web-app config below and run the site from localhost or a hosted website. Yahoo, Apple, and Facebook are not connected yet. Never enter your provider password into this website.</p>
+ <div class="account-status" id="accountStatus" aria-live="polite">Not signed in. Progress saves on this device. Sign in with Google to enable cloud saving.</div>
+ <p class="muted small" style="margin-bottom:0">Google is the connected sign-in option. Cloud saving requires the Firestore database and security rules to be set up in Firebase. Yahoo, Apple, and Facebook are not connected. Never enter your provider password into this website.</p>
 </section>
 
 <div class="grid" style="margin-top:16px">
@@ -97,7 +97,7 @@ select,input{padding:10px;border:1px solid #cfd8e8;border-radius:10px;background
 <div class="tradeform"><label>Amount invested (EGP)<input id="calcAmount" type="number" min="1" value="500"></label><label>Price change (%)<input id="calcChange" type="number" value="10" step="1"></label><label>Scenario<select id="calcScenario"><option value="gain">Price rises</option><option value="loss">Price falls</option></select></label><button id="calcBtn">Calculate</button></div><div class="lessonbox" id="calcResult">Try a 10% rise or fall to compare the outcomes.</div>
 </section>
 </div>
-<p class="footer">Stock Quest is an educational demo. It saves progress in this browser only. No account, payments, or real investing.</p>
+<p class="footer">Stock Quest is an educational demo using pretend money only. When signed in, progress can sync through your Firebase account. No payments or real investing.</p>
 </main>
 <script>
 const initialAssets=[
@@ -122,12 +122,23 @@ const missions=[
 
 let lessonIndex=0,quizAsked=false;
 const SAVE_KEY="stockQuestEgyptProgress_v1";
+function getProgressPayload(){return {cash:state.cash,assets:state.assets,holdings:state.holdings,xp:state.xp,completed:state.completed,trades:state.trades,marketDays:state.marketDays,quizDone:state.quizDone};}
+window.stockQuestGetProgressPayload=getProgressPayload;
+window.stockQuestApplyCloudProgress=function(saved){
+ try{
+  if(!saved||typeof saved.cash!=="number"||!Array.isArray(saved.assets)||typeof saved.xp!=="number")throw new Error("Invalid cloud save");
+  state={cash:saved.cash,assets:saved.assets,holdings:saved.holdings||{},xp:saved.xp,completed:saved.completed||[],trades:saved.trades||0,marketDays:saved.marketDays||0,quizDone:saved.quizDone||[]};
+  render();
+  return true;
+ }catch(e){return false;}
+};
 function saveProgress(){
  try{
-  const payload={cash:state.cash,assets:state.assets,holdings:state.holdings,xp:state.xp,completed:state.completed,trades:state.trades,marketDays:state.marketDays,quizDone:state.quizDone};
+  const payload=getProgressPayload();
   localStorage.setItem(SAVE_KEY,JSON.stringify(payload));
   const status=document.getElementById("accountStatus");
-  if(status)status.textContent="Progress saved on this browser at "+new Date().toLocaleString()+". This is device-only saving, not cloud account sync.";
+  if(status && !window.stockQuestCloudSave)status.textContent="Progress saved on this browser at "+new Date().toLocaleString()+". Sign in with Google to sync across devices.";
+  if(typeof window.stockQuestCloudSave==="function")window.stockQuestCloudSave(payload);
   return true;
  }catch(e){
   const status=document.getElementById("accountStatus");
@@ -143,7 +154,7 @@ function loadProgress(showMessage=true){
   if(typeof saved.cash!=="number"||!Array.isArray(saved.assets)||typeof saved.xp!=="number")throw new Error("Invalid save");
   state={cash:saved.cash,assets:saved.assets,holdings:saved.holdings||{},xp:saved.xp,completed:saved.completed||[],trades:saved.trades||0,marketDays:saved.marketDays||0,quizDone:saved.quizDone||[]};
   render();
-  if(showMessage)document.getElementById("accountStatus").textContent="Saved progress loaded on this device. Cloud sign-in is not connected.";
+  if(showMessage)document.getElementById("accountStatus").textContent="Saved progress loaded from this browser.";
   return true;
  }catch(e){
   if(showMessage)document.getElementById("accountStatus").textContent="Could not load saved progress. The saved data may be damaged.";
@@ -198,6 +209,7 @@ if(!loadProgress(false))render();
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 // 1) Replace the sample values below with the exact config from Firebase Console > Project settings > Your apps > Config.
 const firebaseConfig = {
@@ -216,7 +228,59 @@ if (!configReady) {
   try {
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
+    let activeUser = null;
+    let cloudReady = false;
+    let cloudSaveTimer = null;
+    let syncingUid = null;
+    const PROGRESS_KEY = "stockQuestEgyptProgress_v1";
+    const LOCAL_BACKUP_KEY = "stockQuestEgyptLocalBackup_v1";
+    async function syncUserProgress(user) {
+      if (syncingUid === user.uid) return;
+      syncingUid = user.uid;
+      cloudReady = false;
+      activeUser = null;
+      status.textContent = "Checking your cloud save…";
+      try {
+        const progressRef = doc(db, "players", user.uid);
+        const snapshot = await getDoc(progressRef);
+        const localRaw = localStorage.getItem(PROGRESS_KEY);
+        if (snapshot.exists()) {
+          // Preserve this browser's save before loading the account's cloud save.
+          if (localRaw) localStorage.setItem(LOCAL_BACKUP_KEY, localRaw);
+          const loaded = window.stockQuestApplyCloudProgress(snapshot.data());
+          if (!loaded) throw new Error("The cloud save has an unexpected format.");
+          status.textContent = "Cloud progress loaded for " + (user.displayName || user.email || "your account") + ". Your previous device save was backed up in this browser.";
+        } else {
+          const current = window.stockQuestGetProgressPayload();
+          await setDoc(progressRef, { ...current, schemaVersion: 1, updatedAt: serverTimestamp() });
+          status.textContent = "Your current progress has been saved to your Google-linked cloud account.";
+        }
+        activeUser = user;
+        cloudReady = true;
+      } catch (error) {
+        console.error("Cloud progress load error:", error);
+        activeUser = user;
+        cloudReady = true;
+        status.textContent = "Signed in, but cloud saving could not start. Check that your Firestore database and published security rules use the /players/{userId} path. Error: " + (error.code || error.message || "unknown error");
+      } finally {
+        syncingUid = null;
+      }
+    }
+    window.stockQuestCloudSave = payload => {
+      if (!activeUser || !cloudReady) return;
+      clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = setTimeout(async () => {
+        try {
+          await setDoc(doc(db, "players", activeUser.uid), { ...payload, schemaVersion: 1, updatedAt: serverTimestamp() });
+          status.textContent = "Cloud save synced at " + new Date().toLocaleTimeString() + ". You can continue on another device by signing in with the same Google account.";
+        } catch (error) {
+          console.error("Cloud progress save error:", error);
+          status.textContent = "Your progress is saved on this browser, but cloud sync failed. Check the Firestore database and security rules.";
+        }
+      }, 600);
+    };
     // iOS Safari can be more reliable with a redirect than a popup. Keep the existing popup flow on other devices.
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     window.stockQuestGoogleSignIn = async () => {
@@ -227,28 +291,29 @@ if (!configReady) {
           return;
         }
         const result = await signInWithPopup(auth, provider);
-        status.textContent = "Signed in as " + (result.user.displayName || result.user.email || "Google user") + ". Your game progress is still saved on this browser; cloud sync is the next step.";
+        await syncUserProgress(result.user);
       } catch (error) {
         console.error("Firebase Google sign-in error:", error.code, error.message);
         status.textContent = "Sign-in didn't work: " + (error.code || "unknown error") + ". Check that Google is enabled, the domain is authorized, and the site is running on localhost or HTTPS.";
       }
     };
-    getRedirectResult(auth).then(result => {
-      if (result && result.user) status.textContent = "Signed in as " + (result.user.displayName || result.user.email || "Google user") + ". Your game progress is still saved on this browser; cloud sync is the next step.";
+    getRedirectResult(auth).then(async result => {
+      if (result && result.user) await syncUserProgress(result.user);
     }).catch(error => {
       console.error("Firebase redirect sign-in error:", error.code, error.message);
       status.textContent = "Google sign-in did not finish: " + (error.code || "unknown error") + ". Please try again.";
     });
     signOutBtn.hidden = false;
     signOutBtn.addEventListener("click", async () => {
-      try { await signOut(auth); status.textContent = "Signed out. Your browser-saved practice progress remains on this device."; }
+      try { await signOut(auth); activeUser = null; cloudReady = false; status.textContent = "Signed out. Progress remains saved on this browser; cloud syncing pauses until you sign in again."; }
       catch (error) { status.textContent = "Could not sign out. Please try again."; }
     });
     onAuthStateChanged(auth, user => {
       if (user) {
-        status.textContent = "Signed in as " + (user.displayName || user.email || "Google user") + ". Your game progress is still saved on this browser; cloud sync is the next step.";
-      } else if (!status.textContent.startsWith("Sign-in didn't work")) {
-        status.textContent = "Not signed in. Click Google to sign in. Browser-only saving is enabled; cloud progress sync is the next step.";
+        if (!activeUser || activeUser.uid !== user.uid) syncUserProgress(user);
+      } else {
+        activeUser = null; cloudReady = false;
+        if (!status.textContent.startsWith("Sign-in didn't work")) status.textContent = "Not signed in. Progress saves on this browser. Sign in with Google to sync across devices.";
       }
     });
   } catch (error) {
